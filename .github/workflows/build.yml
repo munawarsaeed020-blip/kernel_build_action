@@ -15,16 +15,16 @@ jobs:
       - name: Build Kernel
         uses: dabao1955/kernel_build_action@main
         with:
-          kernel-url: https://github.com/MiCode/Xiaomi_Kernel_OpenSource/tree/light-u-oss
+          kernel-url: https://github.com/MT6833-Mainline/linux-mt6833
           kernel-dir: msm-4.19
-          kernel-branch: lineage-21
-          config: light_defconfig
+          kernel-branch: main
+          config: mt6833_defconfig
           arch: arm64
           aosp-gcc: true
           aosp-clang: true
           ksu: true
           ksu-version: main
           android-version: 12
-          aosp-clang-version: clang-r450784d
+          aosp-clang-version: clang-r522817
           disable-lto: true
           anykernel3: true
