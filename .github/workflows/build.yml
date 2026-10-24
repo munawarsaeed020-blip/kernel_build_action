@@ -16,8 +16,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf libssl-dev libxml2-utils rsync zip libncurses5-dev python3
 
-    - name: Set Up Proton Clang Toolchain
-      uses: kdrag0n/setup-proton-clang@v1
+    - name: Download Toolchain
+      run: |
+        git clone https://github.com --depth=1 $GITHUB_WORKSPACE/clang
 
     - name: Clone MT6833 Pre-Patched Kernel Source
       run: |
@@ -26,6 +27,7 @@ jobs:
     - name: Build Kernel Binary
       run: |
         cd source
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export ARCH=arm64
         export SUBARCH=arm64
         export CROSS_COMPILE=aarch64-linux-gnu-
