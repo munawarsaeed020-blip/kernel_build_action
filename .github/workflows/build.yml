@@ -14,34 +14,29 @@ jobs:
     - name: Set Up Build Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf libssl-dev libxml2-utils rsync zip libncurses5-dev python3
-
-    - name: Download Toolchain
-      run: |
-        git clone https://github.com --depth=1 $GITHUB_WORKSPACE/clang
+        sudo apt-get install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf libssl-dev libxml2-utils rsync zip libncurses5-dev python3 clang lld
 
     - name: Clone MT6833 Pre-Patched Kernel Source
       run: |
-        git clone https://github.com --depth=1 source
+        git clone https://github.com/MT6833-Mainline/linux-mt6833.git
         
     - name: Build Kernel Binary
       run: |
         cd source
-        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export ARCH=arm64
         export SUBARCH=arm64
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
-        # Auto-detect the correct defconfig name inside the tree automatically
         CONF_FILE=$(ls arch/arm64/configs/ | grep -E "mt6833|light|thunder" | head -n 1)
         echo "Found defconfig: $CONF_FILE"
         
-        make O=out CC=clang $CONF_FILE
-        make -j$(nproc --all) O=out CC=clang
+        make O=out CC=clang LD=ld.lld $CONF_FILE
+        make -j$(nproc --all) O=out CC=clang LD=ld.lld
 
     - name: Package and Upload Output
       uses: actions/upload-artifact@v4
       with:
         name: MT6833-Android16-Kernel
         path: source/out/arch/arm64/boot/Image.gz-dtb
+
