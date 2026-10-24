@@ -18,7 +18,7 @@ jobs:
 
     - name: Clone MT6833 Pre-Patched Kernel Source
       run: |
-        git clone https://github.com/MT6833-Mainline/linux-mt6833.git
+        git clone https://github.com/munawarsaeed020-blip/device_xiaomi_mt6833-common.git
         
     - name: Build Kernel Binary
       run: |
