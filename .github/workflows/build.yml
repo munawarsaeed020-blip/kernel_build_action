@@ -14,15 +14,11 @@ jobs:
     - name: Set Up Build Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libsdl1.1-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3-pip
+        sudo apt-get install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf libssl-dev libxml2-utils rsync zip libncurses5-dev python3
 
-    - name: Download AOSP Clang Compiler
+    - name: Clone Proton Clang Compiler
       run: |
-        mkdir -p clang
-        cd clang
-        curl -LO https://googlesource.com
-        tar -xzf clang-r522817.tar.gz
-        rm clang-r522817.tar.gz
+        git clone https://github.com --depth=1 clang
 
     - name: Clone MT6833 Pre-Patched Kernel Source
       run: |
@@ -34,11 +30,11 @@ jobs:
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export ARCH=arm64
         export SUBARCH=arm64
-        export CLANG_TRIPLE=aarch64-linux-gnu-
-        export CROSS_COMPILE=aarch64-linux-android-
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
-        # Build configuration targeting POCO M4 5G
-        make O=out light_defconfig
+        # Generates configuration using the unified community config target
+        make O=out CC=clang mt6833_defconfig
         
         # Compile the kernel zImage binary
         make -j$(nproc --all) O=out CC=clang
