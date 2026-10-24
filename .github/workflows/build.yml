@@ -1,30 +1,50 @@
-# A simple action usage
-name: Build Kernel
+name: Build MT6833 Android 16 Kernel
+
 on:
   workflow_dispatch:
 
 jobs:
-  Build-Kernel:
-    strategy:
-      fail-fast: false
+  build:
+    name: Build Kernel via GitHub Actions
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
-      - name: Build Kernel
-        uses: dabao1955/kernel_build_action@main
-        with:
-          kernel-url: https://github.com/MT6833-Mainline/linux-mt6833
-          kernel-dir: msm-4.19
-          kernel-branch: main
-          config: mt6833_defconfig
-          arch: arm64
-          aosp-gcc: true
-          aosp-clang: true
-          ksu: true
-          ksu-version: main
-          android-version: 12
-          aosp-clang-version: clang-r522817
-          disable-lto: true
-          anykernel3: true
+    - name: Checkout Workspace
+      uses: actions/checkout@v4
+
+    - name: Set Up Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libsdl1.1-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3-pip
+
+    - name: Download AOSP Clang Compiler
+      run: |
+        mkdir -p clang
+        cd clang
+        curl -LO https://googlesource.com
+        tar -xzf clang-r522817.tar.gz
+        rm clang-r522817.tar.gz
+
+    - name: Clone MT6833 Pre-Patched Kernel Source
+      run: |
+        git clone https://github.com --depth=1 -b lineage-21 source
+        
+    - name: Build Kernel Binary
+      run: |
+        cd source
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CLANG_TRIPLE=aarch64-linux-gnu-
+        export CROSS_COMPILE=aarch64-linux-android-
+        
+        # Build configuration targeting POCO M4 5G
+        make O=out light_defconfig
+        
+        # Compile the kernel zImage binary
+        make -j$(nproc --all) O=out CC=clang
+
+    - name: Package and Upload Output
+      uses: actions/upload-artifact@v4
+      with:
+        name: MT6833-Android16-Kernel
+        path: source/out/arch/arm64/boot/Image.gz-dtb
